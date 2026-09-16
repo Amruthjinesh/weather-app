@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">Weatherly</div>
+        <form id="searchForm" class="search-form">
+          <input
+            id="cityInput"
+            type="text"
+            placeholder="Search city"
+            aria-label="Search city"
+          />
+          <button type="submit">Search</button>
+        </form>
+      </header>
+
+      <main class="content">
+        <div id="status" class="status" aria-live="polite"></div>
+
+        <section id="weatherCard" class="weather-card hidden">
+          <div class="weather-header">
+            <div>
+              <p class="label">Current weather</p>
+              <h1 id="cityName">City</h1>
+            </div>
+            <div id="weatherIcon" class="weather-icon" aria-label="Weather icon">☀️</div>
+          </div>
+
+          <div class="temperature-row">
+            <div class="temp" id="temp">--°C</div>
+            <div>
+              <div class="condition" id="condition">--</div>
+              <div class="update-time" id="time">--</div>
+            </div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <span>Feels like</span>
+              <strong id="feelsLike">--</strong>
+            </div>
+            <div class="stat">
+              <span>Humidity</span>
+              <strong id="humidity">--</strong>
+            </div>
+            <div class="stat">
+              <span>Wind</span>
+              <strong id="wind">--</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="forecast-section">
+          <h2>Next 5 days</h2>
+          <div id="forecast" class="forecast"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
