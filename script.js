@@ -20,6 +20,15 @@ let soundGain;
 let soundSource;
 let soundEnabled = false;
 
+const weatherSoundProfiles = {
+  clear: { gain: 0.008, frequency: 900, type: 'lowpass' },
+  cloudy: { gain: 0.01, frequency: 1200, type: 'lowpass' },
+  rain: { gain: 0.045, frequency: 2400, type: 'bandpass' },
+  storm: { gain: 0.075, frequency: 3200, type: 'lowpass' },
+  snow: { gain: 0.012, frequency: 1400, type: 'lowpass' },
+  fog: { gain: 0.012, frequency: 1000, type: 'lowpass' }
+};
+
 const weatherCodes = {
   0: 'Clear sky',
   1: 'Mostly clear',
@@ -109,12 +118,27 @@ function updateWeatherEffect(code) {
   }
 }
 
-function createNoiseBuffer(context) {
-  const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
+function createNoiseBuffer(context, weatherType) {
+  const sampleRate = context.sampleRate;
+  const buffer = context.createBuffer(1, sampleRate * 2, sampleRate);
   const data = buffer.getChannelData(0);
 
   for (let index = 0; index < data.length; index += 1) {
-    data[index] = Math.random() * 2 - 1;
+    let value = (Math.random() * 2 - 1) * 0.9;
+
+    if (weatherType === 'rain') {
+      value *= (index % 5 === 0) ? 1.8 : 0.35;
+    } else if (weatherType === 'storm') {
+      value *= (index % 7 === 0) ? 2.3 : 0.8;
+    } else if (weatherType === 'snow') {
+      value *= 0.5;
+    } else if (weatherType === 'clear') {
+      value *= 0.18;
+    } else if (weatherType === 'fog' || weatherType === 'cloudy') {
+      value *= 0.25;
+    }
+
+    data[index] = value;
   }
 
   return buffer;
@@ -124,20 +148,28 @@ function updateWeatherSound(code) {
   if (!soundEnabled || !soundGain || !audioContext) return;
 
   const weatherType = getWeatherType(code);
+  const profile = weatherSoundProfiles[weatherType] || weatherSoundProfiles.cloudy;
+
+  try {
+    if (soundSource) {
+      soundSource.stop();
+    }
+  } catch (error) {
+    // Ignore stop errors from already stopped sources.
+  }
+
   const filter = audioContext.createBiquadFilter();
   const source = audioContext.createBufferSource();
   const nextGain = audioContext.createGain();
-  const isStorm = weatherType === 'storm';
 
-  source.buffer = createNoiseBuffer(audioContext);
+  source.buffer = createNoiseBuffer(audioContext, weatherType);
   source.loop = true;
-  filter.type = 'lowpass';
-  filter.frequency.value = weatherType === 'snow' ? 900 : isStorm ? 1400 : 2300;
-  nextGain.gain.value = weatherType === 'clear' || weatherType === 'cloudy' ? 0.006 : 0.018;
+  filter.type = profile.type;
+  filter.frequency.value = profile.frequency;
+  nextGain.gain.value = profile.gain;
+
   source.connect(filter).connect(nextGain).connect(soundGain);
   source.start();
-
-  if (soundSource) soundSource.stop();
   soundSource = source;
 }
 
