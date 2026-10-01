@@ -10,18 +10,25 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <div id="weatherEffect" class="weather-effect" aria-hidden="true"></div>
     <div class="app">
       <header class="topbar">
         <div class="brand">Weatherly</div>
-        <form id="searchForm" class="search-form">
-          <input
-            id="cityInput"
-            type="text"
-            placeholder="Search city"
-            aria-label="Search city"
-          />
-          <button type="submit">Search</button>
-        </form>
+        <div class="topbar-actions">
+          <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="false" title="Enable weather sounds">
+            <span aria-hidden="true">🔇</span>
+            <span class="sr-only">Enable weather sounds</span>
+          </button>
+          <form id="searchForm" class="search-form">
+            <input
+              id="cityInput"
+              type="text"
+              placeholder="Search city"
+              aria-label="Search city"
+            />
+            <button type="submit">Search</button>
+          </form>
+        </div>
       </header>
 
       <main class="content">
@@ -33,7 +40,9 @@
               <p class="label">Current weather</p>
               <h1 id="cityName">City</h1>
             </div>
-            <div id="weatherIcon" class="weather-icon" aria-label="Weather icon">☀️</div>
+            <div id="weatherScene" class="weather-scene" aria-hidden="true">
+              <div id="weatherIcon" class="weather-icon">☀️</div>
+            </div>
           </div>
 
           <div class="temperature-row">

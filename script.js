@@ -11,6 +11,14 @@ const humidityEl = document.getElementById('humidity');
 const windEl = document.getElementById('wind');
 const forecastEl = document.getElementById('forecast');
 const weatherIconEl = document.getElementById('weatherIcon');
+const weatherSceneEl = document.getElementById('weatherScene');
+const weatherEffectEl = document.getElementById('weatherEffect');
+const soundToggle = document.getElementById('soundToggle');
+
+let audioContext;
+let soundGain;
+let soundSource;
+let soundEnabled = false;
 
 const weatherCodes = {
   0: 'Clear sky',
@@ -74,6 +82,88 @@ const weatherIcons = {
   99: '⛈️'
 };
 
+function getWeatherType(code) {
+  if (code >= 95) return 'storm';
+  if (code >= 71 && code <= 86) return 'snow';
+  if (code >= 51 && code <= 67 || code >= 80 && code <= 82) return 'rain';
+  if (code === 45 || code === 48) return 'fog';
+  if (code === 0) return 'clear';
+  return 'cloudy';
+}
+
+function updateWeatherEffect(code) {
+  const weatherType = getWeatherType(code);
+  document.body.dataset.weather = weatherType;
+  weatherEffectEl.dataset.weather = weatherType;
+  weatherEffectEl.innerHTML = '';
+
+  if (weatherType === 'rain' || weatherType === 'storm') {
+    const particleCount = weatherType === 'storm' ? 70 : 45;
+    weatherEffectEl.innerHTML = Array.from({ length: particleCount }, () => (
+      `<span style="--left:${Math.random() * 110 - 5}%;--length:${16 + Math.random() * 18}px;--duration:${0.55 + Math.random() * 0.45}s;--delay:${Math.random() * -2}s"></span>`
+    )).join('');
+  } else if (weatherType === 'snow') {
+    weatherEffectEl.innerHTML = Array.from({ length: 28 }, () => (
+      `<span style="--left:${Math.random() * 105 - 2.5}%;--duration:${4 + Math.random() * 4}s;--delay:${Math.random() * -6}s"></span>`
+    )).join('');
+  }
+}
+
+function createNoiseBuffer(context) {
+  const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for (let index = 0; index < data.length; index += 1) {
+    data[index] = Math.random() * 2 - 1;
+  }
+
+  return buffer;
+}
+
+function updateWeatherSound(code) {
+  if (!soundEnabled || !soundGain || !audioContext) return;
+
+  const weatherType = getWeatherType(code);
+  const filter = audioContext.createBiquadFilter();
+  const source = audioContext.createBufferSource();
+  const nextGain = audioContext.createGain();
+  const isStorm = weatherType === 'storm';
+
+  source.buffer = createNoiseBuffer(audioContext);
+  source.loop = true;
+  filter.type = 'lowpass';
+  filter.frequency.value = weatherType === 'snow' ? 900 : isStorm ? 1400 : 2300;
+  nextGain.gain.value = weatherType === 'clear' || weatherType === 'cloudy' ? 0.006 : 0.018;
+  source.connect(filter).connect(nextGain).connect(soundGain);
+  source.start();
+
+  if (soundSource) soundSource.stop();
+  soundSource = source;
+}
+
+function toggleWeatherSound() {
+  if (!audioContext) {
+    audioContext = new AudioContext();
+    soundGain = audioContext.createGain();
+    soundGain.gain.value = 0.45;
+    soundGain.connect(audioContext.destination);
+  }
+
+  const isEnabled = soundToggle.getAttribute('aria-pressed') === 'true';
+  if (isEnabled) {
+    soundEnabled = false;
+    soundGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.05);
+    soundToggle.setAttribute('aria-pressed', 'false');
+    soundToggle.innerHTML = '<span aria-hidden="true">🔇</span><span class="sr-only">Enable weather sounds</span>';
+  } else {
+    soundEnabled = true;
+    soundGain.gain.setTargetAtTime(0.45, audioContext.currentTime, 0.05);
+    soundToggle.setAttribute('aria-pressed', 'true');
+    soundToggle.innerHTML = '<span aria-hidden="true">🔊</span><span class="sr-only">Mute weather sounds</span>';
+    updateWeatherSound(Number(weatherCard.dataset.weatherCode || 0));
+  }
+}
+
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
   statusEl.style.color = isError ? '#fca5a5' : '#94a3b8';
@@ -129,6 +219,10 @@ function renderWeather(data, locationName) {
   humidityEl.textContent = `${current.relative_humidity_2m}%`;
   windEl.textContent = `${Math.round(current.wind_speed_10m)} km/h`;
   weatherIconEl.textContent = weatherIcons[currentCode] || '🌤️';
+  weatherCard.dataset.weatherCode = currentCode;
+  weatherSceneEl.dataset.weather = getWeatherType(currentCode);
+  updateWeatherEffect(currentCode);
+  updateWeatherSound(currentCode);
 
   forecastEl.innerHTML = daily.time
     .slice(0, 5)
@@ -176,5 +270,7 @@ form.addEventListener('submit', (event) => {
 
   searchWeather(city);
 });
+
+soundToggle.addEventListener('click', toggleWeatherSound);
 
 searchWeather('London');
