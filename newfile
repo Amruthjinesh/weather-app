@@ -1,2 +1,3 @@
 echo "welcome"
 ls -l
+touch file.txt
