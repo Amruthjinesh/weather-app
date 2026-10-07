@@ -1,3 +1,2 @@
 echo "welcome"
 ls -l
-echo "did it work correctly"
