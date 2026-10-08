@@ -1,5 +1,5 @@
 pipeline{
-    agent { label 'deployagent' }
+    agent any
     stages{
         stage('checkout'){
             steps{
@@ -7,6 +7,7 @@ pipeline{
                 sh '''
                     git clone https://github.com/Amruthjinesh/weather-app.git
                     ls -l
+                    ls
                 '''
             }
         }
