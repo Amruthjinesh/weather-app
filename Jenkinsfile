@@ -7,7 +7,6 @@ pipeline{
                 sh '''
                     git clone https://github.com/Amruthjinesh/weather-app.git
                     ls -l
-                    ls
                 '''
             }
         }
