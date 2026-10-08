@@ -1,5 +1,5 @@
 pipeline{
-    agent any
+    agent { label 'deployagent' }
     stages{
         stage('checkout'){
             steps{
