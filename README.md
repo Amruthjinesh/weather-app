@@ -2,7 +2,7 @@
 
 This project demonstrates how to automatically deploy a static website to **GitHub Pages** using **GitHub Actions**.
 
-Whenever changes are pushed to the `master` branch, GitHub Actions automatically builds and deploys the .
+Whenever changes are pushed to the `master` branch, GitHub Actions automatically builds and deploys the website.
 
 ## 🛠️ Technologies Used
 
